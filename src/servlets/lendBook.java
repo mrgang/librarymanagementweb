@@ -22,12 +22,11 @@ public class lendBook extends HttpServlet{
         req.setCharacterEncoding("UTF-8");
         resp.setCharacterEncoding("UTF-8");
 
-        String stu_number_or_idcard = req.getParameter("stu_number_or_idcard");
-        String book_class_number = req.getParameter("book_class_number");
-        String stu_name = req.getParameter("stu_name");
+        String stu_number_or_idcard = req.getParameter("stu_number");
+        int book_id = Integer.parseInt(req.getParameter("book_id"));
 
-        System.out.println("服务器得到的数据 "+stu_number_or_idcard+" "+book_class_number+" "+stu_name);
-        boolean res = SqlHelpers.lendBook(stu_number_or_idcard,book_class_number,stu_name);
+        System.out.println("服务器得到的数据 "+stu_number_or_idcard+" "+book_id);
+        boolean res = SqlHelpers.lendBook(stu_number_or_idcard,book_id);
         PrintWriter out = resp.getWriter();
         out.println(res+"");
         out.flush();

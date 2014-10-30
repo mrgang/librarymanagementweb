@@ -79,14 +79,14 @@ public class SqlHelpers {
                 System.out.println("建立数据库链接出错！");
             }
         }
-        System.out.println("处理查询结果s！"+book_name);
+        System.out.println("处理查询结果s！" + book_name);
         try {
             Statement statement = connection.createStatement();
             String sql = "select * from book_inventory where book_name like '%" + book_name + "%'";
             System.out.println(sql);
             rs = statement.executeQuery(sql);
             while (rs.next()) {
-                System.out.println("处理查询结果"+rs.getString("contents"));
+                System.out.println("处理查询结果" + rs.getString("contents"));
                 objectTemp = new JSONObject();
                 objectTemp.put("_id", rs.getInt("_id"));
                 objectTemp.put("book_class_number", rs.getString("book_class_number"));
@@ -247,8 +247,9 @@ public class SqlHelpers {
         return result;
     }
 
-    public static boolean lendBook(String stu_number_or_idcard, String book_class_number,String stu_name) {
+    public static boolean lendBook(String stu_number_or_idcard, int _id) {
         boolean result = false;
+        if (stu_number_or_idcard.isEmpty()) return result;
         ResultSet rs;
         if (connection == null) {
             try {
@@ -263,14 +264,28 @@ public class SqlHelpers {
         try {
             Statement statement = connection.createStatement();
             int count = 0;
-            rs = statement.executeQuery("select real_count from book_inventory where book_class_number = '" + book_class_number + "'");
+            rs = statement.executeQuery("select real_count from book_inventory where _id = '" + _id + "'");
             while (rs.next()) {
                 count = rs.getInt("real_count");
             }
             count = count - 1;
-            statement.executeUpdate("update book_inventory set real_count = " + count + "where book_class_number = " + book_class_number);
+            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("update book_inventory set real_count = ? where _id = ?");
+            ps.setInt(1,count);
+            ps.setInt(2,_id);
+            ps.execute();
+
             result = true;
-            statement.execute("insert into book_lends(stu_number_or_idcard,stu_name,book_class_name,lend_time,return_time,qq) values("+stu_number_or_idcard+","+stu_name+","+book_class_number+",2014-10-14,2017-10-14)");
+            rs = statement.executeQuery("select * from user_info where stu_number_or_idcard = " + stu_number_or_idcard);
+            String stu_name = null;
+            while (rs.next()) {
+                stu_name = rs.getString("stu_name");
+            }
+            rs = statement.executeQuery("select * from book_inventory where _id ="+_id);
+            String book_class_number = null;
+            while (rs.next()){
+                book_class_number = rs.getString("book_class_number");
+            }
+            statement.execute("insert into book_lends(_id,stu_number_or_idcard,stu_name,book_class_name,lend_time,return_time,qq) values(NULL ,"+ stu_number_or_idcard + "," + stu_name + "," + book_class_number + ",2014/10/14,2017/10/14,1111111)");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -278,7 +293,7 @@ public class SqlHelpers {
         return result;
     }
 
-    public static boolean login(String stu_number_or_idcard, String psword){
+    public static boolean login(String stu_number_or_idcard, String psword) {
         boolean result = false;
         ResultSet rs;
         if (connection == null) {
@@ -293,7 +308,7 @@ public class SqlHelpers {
         }
         try {
             Statement statement = connection.createStatement();
-            rs = statement.executeQuery("select password from user_info where stu_number_or_idcard = "+stu_number_or_idcard);
+            rs = statement.executeQuery("select password from user_info where stu_number_or_idcard = " + stu_number_or_idcard);
             while (rs.next()) {
                 if (rs.getString("password").equals(psword)) {
                     result = true;
@@ -309,8 +324,8 @@ public class SqlHelpers {
         return result;
     }
 
-    public static String selectLendBooks(String stu_number_or_idcard){
-        ArrayList<String> list = new ArrayList<String>();
+    public static String selectLendBooks(String stu_number_or_idcard) {
+        JSONArray array = new JSONArray();
         ResultSet rs;
         if (connection == null) {
             try {
@@ -324,9 +339,9 @@ public class SqlHelpers {
         }
         try {
             Statement statement = connection.createStatement();
-            rs = statement.executeQuery("select book_class_name from book_lends where stu_number_or_idcard = "+stu_number_or_idcard);
+            rs = statement.executeQuery("select book_class_name from book_lends where stu_number_or_idcard = " + stu_number_or_idcard);
             while (rs.next()) {
-                list.add(rs.getString("book_class_name"));
+                array.put(rs.getString("book_class_name"));
             }
             rs.close();
         } catch (SQLException e) {
@@ -334,6 +349,6 @@ public class SqlHelpers {
             e.printStackTrace();
         }
 
-        return list.toString();
+        return array.toString();
     }
 }
