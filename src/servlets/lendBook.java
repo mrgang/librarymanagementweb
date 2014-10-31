@@ -25,7 +25,7 @@ public class lendBook extends HttpServlet{
         String stu_number_or_idcard = req.getParameter("stu_number");
         int book_id = Integer.parseInt(req.getParameter("book_id"));
 
-        System.out.println("服务器得到的数据 "+stu_number_or_idcard+" "+book_id);
+        System.out.println("借阅书籍服务器得到的数据 "+stu_number_or_idcard+" "+book_id);
         boolean res = SqlHelpers.lendBook(stu_number_or_idcard,book_id);
         PrintWriter out = resp.getWriter();
         out.println(res+"");

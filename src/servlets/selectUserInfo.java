@@ -11,10 +11,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
- * Created by ligan_000 on 2014/10/28.
+ * Created by ligan_000 on 2014/10/30.
  */
-@WebServlet("/servlets/userLogin")
-public class login extends HttpServlet{
+@WebServlet("/servlets/selectUserInfo")
+public class selectUserInfo extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setHeader("Pragma", "no-cache");
@@ -23,10 +23,9 @@ public class login extends HttpServlet{
         resp.setCharacterEncoding("UTF-8");
 
         String stu_number_or_idcard = req.getParameter("stu_number_or_idcard");
-        String password = req.getParameter("psword");
 
-        System.out.println("用户登录服务器得到的数据 "+stu_number_or_idcard+" "+password);
-        boolean res = SqlHelpers.login(stu_number_or_idcard,password);
+        System.out.println("selectUserInfo服务器得到的数据 "+stu_number_or_idcard);
+        String res = SqlHelpers.selectUserInfo(stu_number_or_idcard);
         PrintWriter out = resp.getWriter();
         out.println(res);
         out.flush();

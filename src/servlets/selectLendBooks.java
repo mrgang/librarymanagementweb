@@ -23,7 +23,7 @@ public class selectLendBooks extends HttpServlet {
 
         String stu_number_or_idcard = req.getParameter("stu_number_or_idcard");
 
-        System.out.println("服务器得到的数据 "+stu_number_or_idcard);
+        System.out.println("selectUserLendHistory服务器得到的数据 "+stu_number_or_idcard);
         String res = SqlHelpers.selectLendBooks(stu_number_or_idcard);
         PrintWriter out = resp.getWriter();
         out.println(res);

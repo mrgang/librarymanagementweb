@@ -24,7 +24,7 @@ public class selectBookClassName extends HttpServlet {
 
         String BookClassName = req.getParameter("BookClassName");
 
-        System.out.println("服务器得到的数据 "+BookClassName);
+        System.out.println("selectBookClassName服务器得到的数据 "+BookClassName);
         String res = SqlHelpers.selectBookClassName(BookClassName);
         PrintWriter out = resp.getWriter();
         out.println(res);

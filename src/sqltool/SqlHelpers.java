@@ -3,19 +3,20 @@ package sqltool;
 import com.mysql.jdbc.PreparedStatement;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 import java.sql.*;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by ligan_000 on 2014/10/17.
  */
+//工具类。
 public class SqlHelpers {
     private static String driver = "com.mysql.jdbc.Driver";
     private static String url = "jdbc:mysql://localhost:3306/library_management";
     private static String user = "root", psw = "";
     private static Connection connection = null;
-
+    //工具类的构造函数，与数据库建立链接。
     public SqlHelpers() {
         try {
             Class.forName(driver);
@@ -31,7 +32,7 @@ public class SqlHelpers {
         }
 
     }
-
+    //添加新书到书库。
     public static String addBook(String book_class_number, String book_name, String author, String press, String press_date, String contents, int total_count) {
         String sres = "success";
         PreparedStatement preparedStatement;
@@ -64,7 +65,7 @@ public class SqlHelpers {
         }
         return sres;
     }
-
+    //通过书名查找书籍。
     public static String selectBookName(String book_name) {
         JSONArray array = new JSONArray();
         JSONObject objectTemp;
@@ -107,7 +108,7 @@ public class SqlHelpers {
 
         return array.toString();
     }
-
+    //通过作者查找书籍。
     public static String selectAuthor(String author) {
         JSONArray array = new JSONArray();
         JSONObject objectTemp;
@@ -146,7 +147,7 @@ public class SqlHelpers {
 
         return array.toString();
     }
-
+    //通过书类号查找书籍。
     public static String selectBookClassName(String book_class_number) {
         JSONArray array = new JSONArray();
         JSONObject objectTemp;
@@ -185,7 +186,7 @@ public class SqlHelpers {
 
         return array.toString();
     }
-
+    //用户归还书籍。
     public static boolean returnBook(String stu_number_or_idcard, String book_class_number) {
         boolean result = false;
         ResultSet rs;
@@ -207,16 +208,29 @@ public class SqlHelpers {
                 count = rs.getInt("real_count");
             }
             count = count + 1;
-            statement.executeUpdate("update book_inventory set real_count = " + count + "where book_class_number = " + book_class_number);
+
+            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("update book_inventory set real_count = ? where book_class_number = ?");
+            ps.setInt(1, count);
+            ps.setString(2, book_class_number);
+            ps.execute();
+
             result = true;
-            statement.execute("delete from book_lends where stu_number_or_idcard=" + stu_number_or_idcard + "and book_class_number=" + book_class_number);
+            rs = statement.executeQuery("select _id from book_lends  where book_class_name = '" + book_class_number+"' and stu_number_or_idcard = "+stu_number_or_idcard);
+            int mmid = 0;
+            if (rs.next()){
+                mmid = rs.getInt("_id");
+            }
+            String sql = "delete from book_lends where _id = "+mmid;
+            System.out.println(sql);
+            statement.execute(sql);
 
         } catch (SQLException e) {
+            result = false;
             e.printStackTrace();
         }
         return result;
     }
-
+    //用户注册。
     public static boolean regster(String stu_number_or_idcard, String stu_name, String password, String qq) {
         boolean result = false;
         PreparedStatement preparedStatement;
@@ -246,7 +260,7 @@ public class SqlHelpers {
 
         return result;
     }
-
+    //用户借阅书籍。
     public static boolean lendBook(String stu_number_or_idcard, int _id) {
         boolean result = false;
         if (stu_number_or_idcard.isEmpty()) return result;
@@ -268,31 +282,39 @@ public class SqlHelpers {
             while (rs.next()) {
                 count = rs.getInt("real_count");
             }
+            if (count < 1){return result;}
             count = count - 1;
             PreparedStatement ps = (PreparedStatement) connection.prepareStatement("update book_inventory set real_count = ? where _id = ?");
-            ps.setInt(1,count);
-            ps.setInt(2,_id);
+            ps.setInt(1, count);
+            ps.setInt(2, _id);
             ps.execute();
 
             result = true;
             rs = statement.executeQuery("select * from user_info where stu_number_or_idcard = " + stu_number_or_idcard);
-            String stu_name = null;
+            String stu_name = null,qq = null;
             while (rs.next()) {
                 stu_name = rs.getString("stu_name");
+                qq = rs.getString("qq");
             }
-            rs = statement.executeQuery("select * from book_inventory where _id ="+_id);
+            rs = statement.executeQuery("select * from book_inventory where _id =" + _id);
             String book_class_number = null;
-            while (rs.next()){
+            while (rs.next()) {
                 book_class_number = rs.getString("book_class_number");
             }
-            statement.execute("insert into book_lends(_id,stu_number_or_idcard,stu_name,book_class_name,lend_time,return_time,qq) values(NULL ,"+ stu_number_or_idcard + "," + stu_name + "," + book_class_number + ",2014/10/14,2017/10/14,1111111)");
+            Date date = new Date();
+            String rtime = new SimpleDateFormat("yyyyMMddHHmmss").format(date);
+            date.setMonth(date.getMonth()+3);
+            String btime = new SimpleDateFormat("yyyyMMddHHmmss").format(date);
+
+            statement.execute("insert into book_lends values (null ," + stu_number_or_idcard + ",'" + stu_name + "','" +book_class_number +"',"+rtime +","+btime+","+qq+")");
 
         } catch (SQLException e) {
+            result = false;
             e.printStackTrace();
         }
         return result;
     }
-
+    //用户登录。
     public static boolean login(String stu_number_or_idcard, String psword) {
         boolean result = false;
         ResultSet rs;
@@ -308,7 +330,7 @@ public class SqlHelpers {
         }
         try {
             Statement statement = connection.createStatement();
-            rs = statement.executeQuery("select password from user_info where stu_number_or_idcard = " + stu_number_or_idcard);
+            rs = statement.executeQuery("select * from user_info where stu_number_or_idcard = " + stu_number_or_idcard);
             while (rs.next()) {
                 if (rs.getString("password").equals(psword)) {
                     result = true;
@@ -323,9 +345,9 @@ public class SqlHelpers {
 
         return result;
     }
-
-    public static String selectLendBooks(String stu_number_or_idcard) {
-        JSONArray array = new JSONArray();
+    //查找用户信息。
+    public static String selectUserInfo(String stu_number_or_idcard) {
+        String result = null;
         ResultSet rs;
         if (connection == null) {
             try {
@@ -339,9 +361,46 @@ public class SqlHelpers {
         }
         try {
             Statement statement = connection.createStatement();
-            rs = statement.executeQuery("select book_class_name from book_lends where stu_number_or_idcard = " + stu_number_or_idcard);
+            rs = statement.executeQuery("select * from user_info where stu_number_or_idcard = " + stu_number_or_idcard);
+            JSONObject object = new JSONObject();
             while (rs.next()) {
-                array.put(rs.getString("book_class_name"));
+                object.put("stu_number_or_idcard", rs.getString("stu_number_or_idcard"));
+                object.put("stu_name", rs.getString("stu_name"));
+                object.put("qq", rs.getString("qq"));
+            }
+            rs.close();
+            result = object.toString();
+        } catch (SQLException e) {
+            System.out.println("查询用户信息失败了");
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+    //查看用户当前的借阅书籍。
+    public static String selectLendBooks(String stu_number_or_idcard) {
+        JSONArray array = new JSONArray();
+        JSONObject object;
+        ResultSet rs;
+        if (connection == null) {
+            try {
+                Class.forName(driver);
+                connection = DriverManager.getConnection(url, user, psw);
+            } catch (ClassNotFoundException e) {
+                System.out.println("数据库驱动加载失败！");
+            } catch (SQLException e) {
+                System.out.println("建立数据库链接出错！");
+            }
+        }
+        try {
+            Statement statement = connection.createStatement();
+            rs = statement.executeQuery("select * from book_lends where stu_number_or_idcard = " + stu_number_or_idcard);
+            while (rs.next()) {
+                object = new JSONObject();
+                object.put("book_class_name",rs.getString("book_class_name"));
+                object.put("lend_time",rs.getString("lend_time"));
+                object.put("return_time",rs.getString("return_time"));
+                array.put(object);
             }
             rs.close();
         } catch (SQLException e) {

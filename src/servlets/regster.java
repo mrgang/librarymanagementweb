@@ -27,7 +27,7 @@ public class regster extends HttpServlet {
         String password = req.getParameter("password");
         String qq = req.getParameter("qq");
 
-        System.out.println("服务器得到的数据 "+stu_number_or_idcard+"  "+stu_name);
+        System.out.println("用户注册服务器得到的数据 "+stu_number_or_idcard+"  "+stu_name);
         boolean res = SqlHelpers.regster(stu_number_or_idcard, stu_name,password,qq);
         PrintWriter out = resp.getWriter();
         out.println(res);

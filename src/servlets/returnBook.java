@@ -22,11 +22,11 @@ public class returnBook extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
         resp.setCharacterEncoding("UTF-8");
 
-        String stu_number_or_id = req.getParameter("stu_number_or_idcard");
-        String stu_name = req.getParameter("stu_name");
+        String stu_number_or_id = req.getParameter("stu_number_or_id");
+        String book_class_number = req.getParameter("book_class_number");
 
-        System.out.println("服务器得到的数据 "+stu_number_or_id+"  "+stu_name);
-        boolean res = SqlHelpers.returnBook(stu_number_or_id,stu_name);
+        System.out.println("还书服务器得到的数据 "+stu_number_or_id+"  "+book_class_number);
+        boolean res = SqlHelpers.returnBook(stu_number_or_id,book_class_number);
         PrintWriter out = resp.getWriter();
         out.println(res);
         out.flush();

@@ -31,7 +31,7 @@ public class addBook extends HttpServlet {
         String contents = req.getParameter("contents");
         int total_count = Integer.valueOf(req.getParameter("total_count"));
 
-        System.out.println("服务器得到的数据 " + book_class_number);
+        System.out.println("添加书籍服务器得到的数据 " + book_class_number);
         String res = SqlHelpers.addBook(book_class_number, book_name, author, press, press_date, contents, total_count);
         PrintWriter out = resp.getWriter();
         out.println(res);

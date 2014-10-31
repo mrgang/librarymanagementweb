@@ -24,7 +24,7 @@ public class selectByAuthor extends HttpServlet {
 
         String author = req.getParameter("author");
 
-        System.out.println("服务器得到的数据 "+author);
+        System.out.println("selectByAuthor服务器得到的数据 "+author);
         String res = SqlHelpers.selectAuthor(author);
         PrintWriter out = resp.getWriter();
         out.println(res);
