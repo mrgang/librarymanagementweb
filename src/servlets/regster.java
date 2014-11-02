@@ -13,7 +13,7 @@ import java.io.PrintWriter;
 /**
  * Created by ligan_000 on 2014/10/21.
  */
-@WebServlet("/servlets/regster")
+@WebServlet("/servlets/register")
 public class regster extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
